@@ -380,36 +380,58 @@ class Martingale(Player):
         self.lossCount = 0
         self.betMultiple = 1
 
-class Martingale(Player):
+class PlayerRandom(Player):
     """
-    This player doubles their bet on every loss and resets their bet on a win.
-    Chapter 13, pages 79-84
+    Randomly place bets with a fixed initial stake.
+    Chapter 17, pages 99-100
     """
-
-    def __init__(self, table):
-        super().__init__(table)
-        self.lossCount = 0
-        self.betMultiple = 1
-        self.specificBet = table.wheel.getOutcome('Black')
+    def _init_(self, table):
+        super()._init_(table)
+        self.rng = random.Random()
+        self.all_oc = list(table.wheel.all_outcomes)
+        s = len(self.all_oc)
+        u = random.randrange(0, s)
+        self.specificBet = self.all_oc[u]
 
     def placeBets(self):
-        self.nextBet = self.initialBet * self.betMultiple
+        self.nextBet = self.initialBet
         super().placeBets()
+
+
+class PlayerCancellation(Player):
+    """
+    Player bets an allocated series of numbers, each bet being the sum of the first and last number
+    Chapter 19, pages 109-110
+    """
+    def _init_(self, table):
+        super()._init_(table)
+        self.sequence = [1, 2, 3, 4, 5, 6]
+        self.initialBet = self.sequence[0] + self.sequence[-1]
+        self.outcome = "Black"
+        self.specificBet = table.wheel.getOutcome(self.outcome)
+
+    def placeBets(self):
+        if len(self.sequence) > 0:
+            self.nextBet = self.sequence[0] + self.sequence[-1]
+            super().placeBets()
+        else:
+            pass
 
     def win(self, bet):
         super().win(bet)
-        self.lossCount = 0
-        self.betMultiple = 1
+        if len(self.sequence) > 1:
+            self.sequence.pop(0)
+            self.sequence.pop(-1)
 
     def lose(self, bet):
         super().lose(bet)
-        self.lossCount += 1
-        self.betMultiple *= 2
+        self.sequence.append(self.sequence[0] + self.sequence[-1])
+
+    def resetSequence(self):
+        self.sequence = [1, 2, 3, 4, 5, 6]
 
     def reset(self):
         super().reset()
-        self.lossCount = 0
-        self.betMultiple = 1
 
 class InvalidBet(Exception):
     """
