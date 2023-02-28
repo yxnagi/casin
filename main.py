@@ -398,6 +398,7 @@ class PlayerRandom(Player):
         super().placeBets()
 
 
+
 class PlayerCancellation(Player):
     """
     Player bets an allocated series of numbers, each bet being the sum of the first and last number
@@ -500,7 +501,31 @@ rsim = Simulator(Martingale(rtable), rgame)
 maxima, duration = rsim.gather()
 print(maxima)
 print(duration)
-print(rwheel.all_outcomes)
-testvariable = IntegerStatistics([10,8,13,9,11,14,6,4,12,7,5])
-print(testvariable.mean())
-print(testvariable.stdev())
+
+
+randowheel = Wheel()
+randotable = Table(100, randowheel)
+randogame = RouletteGame(randowheel, randotable)
+randosim = Simulator(PlayerRandom(randotable), randogame)
+randomaxima, randoduration = randosim.gather()
+print(randomaxima)
+print(randoduration)
+
+
+pcwheel = Wheel()
+pctable = Table(100, pcwheel)
+pcgame = RouletteGame(pcwheel, pctable)
+pcsim = Simulator(PlayerCancellation(pctable), pcgame)
+pcmaxima, pcduration = pcsim.gather()
+print(pcmaxima)
+print(pcduration)
+
+
+#doesnt work but if it did
+
+randolist = [x for x in randomaxima]
+print(f"RANDOM MEAN MAXIMA = {IntegerStatistics(randolist).mean}")
+rlist = [x for x in maxima]
+print(f"MARTINGALE MEAN MAXIMA = {IntegerStatistics(rlist).mean}")
+pclist = [x for x in pcmaxima]
+print(f"MARTINGALE MEAN MAXIMA = {IntegerStatistics(pclist).mean}")
